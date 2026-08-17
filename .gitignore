@@ -1,0 +1,22 @@
+# Local configuration containing internal paths and server names
+AdminToolkit.ini
+**/AdminToolkit.ini
+
+# Legacy source contains embedded internal server and computer names
+Main_Menu_Prompt.ps1
+
+# Superseded PowerShell UI prototype
+AdminToolkit.App.ps1
+AdminToolkit.Core.psm1
+
+# .NET build output and local SDK caches
+**/bin/
+**/obj/
+.dotnet-cli/
+.build-appdata/
+artifacts/
+
+# User-specific IDE files
+.vs/
+*.user
+*.suo

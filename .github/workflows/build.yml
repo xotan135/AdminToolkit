@@ -1,0 +1,40 @@
+name: Build Windows application
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore .\AdminToolkit.Desktop\AdminToolkit.Desktop.csproj
+
+      - name: Build
+        run: dotnet build .\AdminToolkit.Desktop\AdminToolkit.Desktop.csproj --configuration Release --no-restore
+
+      - name: Publish self-contained application
+        run: dotnet publish .\AdminToolkit.Desktop\AdminToolkit.Desktop.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true --output .\artifacts\AdminToolkit-win-x64
+
+      - name: Upload application artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AdminToolkit-win-x64
+          path: .\artifacts\AdminToolkit-win-x64\
+          if-no-files-found: error

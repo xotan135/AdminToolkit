@@ -1,0 +1,22 @@
+﻿<Application x:Class="AdminToolkit.Desktop.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:AdminToolkit.Desktop"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F2F2F2"/>
+        <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="RaisedBackgroundBrush" Color="#F4F4F4"/>
+        <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#383838"/>
+        <SolidColorBrush x:Key="HeaderSecondaryBrush" Color="#555555"/>
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#252525"/>
+        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#666666"/>
+        <SolidColorBrush x:Key="HeaderTextBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="HeaderMutedTextBrush" Color="#DDDDDD"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#C7C7C7"/>
+        <SolidColorBrush x:Key="FooterBackgroundBrush" Color="#E3E3E3"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#686868"/>
+        <SolidColorBrush x:Key="InputBackgroundBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="GridLineBrush" Color="#E1E1E1"/>
+    </Application.Resources>
+</Application>

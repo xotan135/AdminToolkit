@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>AdminToolkit</AssemblyName>
+    <RootNamespace>AdminToolkit.Desktop</RootNamespace>
+    <Product>Admin Toolkit</Product>
+    <Description>Auditable Windows desktop administration toolkit.</Description>
+    <Version>0.1.0</Version>
+    <ApplicationIcon Condition="Exists('Assets\AdminToolkit.ico')">Assets\AdminToolkit.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="..\AdminToolkit.ini.example" Link="AdminToolkit.ini.example">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

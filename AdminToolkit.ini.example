@@ -1,0 +1,28 @@
+; Copy this file to AdminToolkit.ini and replace placeholders with your environment values.
+; AdminToolkit.ini is excluded from Git. Do not store passwords or API secrets here.
+
+[Appearance]
+DarkMode=false
+
+[Logs]
+AuditDirectory=%LOCALAPPDATA%\AdminToolkit\Logs
+WsusDirectory=\\FILE-SERVER\Share\WSUSUpdateLogs
+MicrosoftUpdateDirectory=\\FILE-SERVER\Share\MicrosoftUpdateLogs
+DellScanDirectory=%LOCALAPPDATA%\AdminToolkit\Logs\Dell
+InventoryDirectory=%LOCALAPPDATA%\AdminToolkit\Logs\Inventory
+
+[Commands]
+PowerShellExecutable=powershell.exe
+DellCommandUpdate=%ProgramFiles%\Dell\CommandUpdate\dcu-cli.exe
+WindowsVersionScript=C:\Path\To\Get-WindowsVersion.ps1
+
+[VNC]
+ServerKey=\\FILE-SERVER\Share\UltraVNC\Server_ClientAuth.pubkey
+Plugin=\\FILE-SERVER\Share\UltraVNC\SecureVNCPlugin64.dsm
+DesktopSettings=\\FILE-SERVER\Share\UltraVNC\ultravnc-desktop-encryption.ini
+LaptopSettings=\\FILE-SERVER\Share\UltraVNC\ultravnc-laptop-encryption.ini
+
+[Safety]
+ProtectedComputers=ADMIN-PC-01,ADMIN-PC-02
+MaximumConcurrency=12
+PingTimeoutMilliseconds=2000
