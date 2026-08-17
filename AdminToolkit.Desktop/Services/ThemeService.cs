@@ -32,5 +32,18 @@ public static class ThemeService
         var colors = darkMode ? Dark : Light;
         foreach (var (key, hex) in colors)
             Application.Current.Resources[key] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+
+        // Native WPF control templates use Windows system brush keys instead of
+        // application brushes. Override them so popup, selection, header, and
+        // disabled-control surfaces follow the chosen theme as well.
+        Application.Current.Resources[SystemColors.WindowBrushKey] = Brush(colors["InputBackgroundBrush"]);
+        Application.Current.Resources[SystemColors.WindowTextBrushKey] = Brush(colors["PrimaryTextBrush"]);
+        Application.Current.Resources[SystemColors.ControlBrushKey] = Brush(colors["RaisedBackgroundBrush"]);
+        Application.Current.Resources[SystemColors.ControlTextBrushKey] = Brush(colors["PrimaryTextBrush"]);
+        Application.Current.Resources[SystemColors.GrayTextBrushKey] = Brush(colors["SecondaryTextBrush"]);
+        Application.Current.Resources[SystemColors.HighlightBrushKey] = Brush(colors["AccentBrush"]);
+        Application.Current.Resources[SystemColors.HighlightTextBrushKey] = Brushes.White;
     }
+
+    private static SolidColorBrush Brush(string hex) => new((Color)ColorConverter.ConvertFromString(hex));
 }

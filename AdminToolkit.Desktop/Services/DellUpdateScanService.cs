@@ -22,36 +22,11 @@ public sealed partial class DellUpdateScanService(
             if (-not (Test-Path -LiteralPath $expandedPath)) {
                 throw "Dell Command Update was not found at the configured path: $expandedPath"
             }
-            $reportDirectory = Join-Path $env:ProgramData 'Dell\AdminToolkit'
-            New-Item -Path $reportDirectory -ItemType Directory -Force -ErrorAction Stop | Out-Null
-            $reportPath = Join-Path $reportDirectory ("DellScan-{0}.xml" -f ([guid]::NewGuid().ToString('N')))
-            try {
-                $consoleOutput = (& $expandedPath /scan "-report=$reportPath" 2>&1 | Out-String).Trim()
-                $exitCode = $LASTEXITCODE
-                $updates = @()
-                if (Test-Path -LiteralPath $reportPath) {
-                    [xml]$report = Get-Content -LiteralPath $reportPath -Raw
-                    $nodes = @($report.SelectNodes("//*[local-name()='update' or local-name()='Update']"))
-                    $updates = @($nodes | ForEach-Object {
-                        $properties = [ordered]@{}
-                        foreach ($attribute in $_.Attributes) { $properties[$attribute.LocalName] = $attribute.Value }
-                        foreach ($child in $_.ChildNodes) {
-                            if ($child.NodeType -eq [System.Xml.XmlNodeType]::Element) { $properties[$child.LocalName] = $child.InnerText.Trim() }
-                        }
-                        if ($properties.Count -eq 0) { $properties['Description'] = $_.InnerText.Trim() }
-                        [pscustomobject]$properties
-                    })
-                }
-                [pscustomobject]@{
-                    ExitCode = $exitCode
-                    UpdateCount = $updates.Count
-                    Updates = $updates
-                    ConsoleOutput = $consoleOutput
-                } | ConvertTo-Json -Depth 8 -Compress
-            }
-            finally {
-                Remove-Item -LiteralPath $reportPath -Force -ErrorAction SilentlyContinue
-            }
+            $consoleOutput = (& $expandedPath /scan 2>&1 | Out-String).Trim()
+            [pscustomobject]@{
+                ExitCode = $LASTEXITCODE
+                ConsoleOutput = $consoleOutput
+            } | ConvertTo-Json -Depth 4 -Compress
         }
         """;
 
@@ -119,7 +94,12 @@ public sealed partial class DellUpdateScanService(
             if (scan.ExitCode != 0)
                 return new ComputerResult(computerName, ResultStatus.Error, $"Dell scan exited with code {scan.ExitCode}.", started, DateTimeOffset.Now, scan.ConsoleOutput);
 
-            var message = scan.UpdateCount == 0 ? "Up to date — no updates available." : $"{scan.UpdateCount} update(s) available.";
+            var message = scan.UpdateCount switch
+            {
+                0 => "Up to date — no updates available.",
+                > 0 => $"{scan.UpdateCount} update(s) available.",
+                _ => "Scan completed — review the command output."
+            };
             return new ComputerResult(computerName, ResultStatus.Success, message, started, DateTimeOffset.Now, FormatResultDetails(scan));
         }
         catch (OperationCanceledException) { throw; }
@@ -139,41 +119,43 @@ public sealed partial class DellUpdateScanService(
         if (jsonLine is null) throw new InvalidDataException("Dell scan did not return an update report.");
         using var document = JsonDocument.Parse(jsonLine);
         var root = document.RootElement;
-        var updates = new List<IReadOnlyDictionary<string, string>>();
-        if (root.TryGetProperty("Updates", out var updateArray) && updateArray.ValueKind == JsonValueKind.Array)
-        {
-            foreach (var update in updateArray.EnumerateArray())
-            {
-                var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var property in update.EnumerateObject()) values[property.Name] = property.Value.ToString();
-                updates.Add(values);
-            }
-        }
+        var consoleOutput = root.TryGetProperty("ConsoleOutput", out var console) ? console.GetString() ?? string.Empty : string.Empty;
         return new ScanResult(
             root.TryGetProperty("ExitCode", out var exitCode) ? exitCode.GetInt32() : -1,
-            root.TryGetProperty("UpdateCount", out var count) ? count.GetInt32() : updates.Count,
-            updates,
-            root.TryGetProperty("ConsoleOutput", out var console) ? console.GetString() ?? string.Empty : string.Empty);
+            DetectUpdateCount(consoleOutput),
+            consoleOutput);
     }
 
-    private static string FormatUpdates(IEnumerable<IReadOnlyDictionary<string, string>> updates) =>
-        string.Join(Environment.NewLine, updates.Select((update, index) =>
+    private static int? DetectUpdateCount(string output)
+    {
+        if (Regex.IsMatch(output, @"no\s+(applicable\s+)?updates?\s+(are\s+)?available", RegexOptions.IgnoreCase)) return 0;
+        var patterns = new[]
         {
-            var preferredKeys = new[] { "Name", "Title", "PackageName", "Type", "Category", "Version", "Severity", "Urgency" };
-            var values = preferredKeys.Where(update.ContainsKey).Select(key => $"{key}: {update[key]}").ToArray();
-            if (values.Length == 0) values = update.Select(entry => $"{entry.Key}: {entry.Value}").Take(5).ToArray();
-            return $"{index + 1}. {string.Join(" · ", values)}";
-        }));
+            @"number\s+of\s+applicable\s+updates[^\d]*(\d+)",
+            @"(\d+)\s+updates?\s+(?:are\s+)?available",
+            @"updates?\s+available[^\d]*(\d+)"
+        };
+        foreach (var pattern in patterns)
+        {
+            var match = Regex.Match(output, pattern, RegexOptions.IgnoreCase);
+            if (match.Success && int.TryParse(match.Groups[1].Value, out var count)) return count;
+        }
+        return null;
+    }
 
     private static string FormatResultDetails(ScanResult scan)
     {
-        var updateDetails = FormatUpdates(scan.Updates);
-        if (string.IsNullOrWhiteSpace(updateDetails)) updateDetails = "No applicable updates were listed in the Dell report.";
         var commandOutput = string.IsNullOrWhiteSpace(scan.ConsoleOutput) ? "Dell Command Update returned no console text." : scan.ConsoleOutput.Trim();
-        return $"AVAILABLE UPDATES ({scan.UpdateCount}){Environment.NewLine}{updateDetails}{Environment.NewLine}{Environment.NewLine}DELL COMMAND UPDATE OUTPUT{Environment.NewLine}{commandOutput}";
+        var availability = scan.UpdateCount switch
+        {
+            0 => "NO UPDATES AVAILABLE",
+            > 0 => $"AVAILABLE UPDATES: {scan.UpdateCount}",
+            _ => "UPDATE COUNT NOT REPORTED — REVIEW OUTPUT BELOW"
+        };
+        return $"{availability}{Environment.NewLine}{Environment.NewLine}DELL COMMAND UPDATE OUTPUT{Environment.NewLine}{commandOutput}";
     }
 
-    private sealed record ScanResult(int ExitCode, int UpdateCount, IReadOnlyList<IReadOnlyDictionary<string, string>> Updates, string ConsoleOutput);
+    private sealed record ScanResult(int ExitCode, int? UpdateCount, string ConsoleOutput);
 
     [GeneratedRegex("^[A-Za-z0-9](?:[A-Za-z0-9.-]{0,251}[A-Za-z0-9])?$")]
     private static partial Regex ComputerNamePattern();

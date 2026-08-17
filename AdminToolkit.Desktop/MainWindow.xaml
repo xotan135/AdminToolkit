@@ -4,7 +4,12 @@
         Title="Admin Toolkit" Height="720" Width="1120" MinHeight="620" MinWidth="900"
         WindowStartupLocation="CenterScreen" Background="{DynamicResource WindowBackgroundBrush}" Foreground="{DynamicResource PrimaryTextBrush}">
     <Window.Resources>
-        <Style TargetType="Button"><Setter Property="Padding" Value="18,9"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Cursor" Value="Hand"/></Style>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="18,9"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False"><Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/><Setter Property="Background" Value="{DynamicResource RaisedBackgroundBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/><Setter Property="Opacity" Value="1"/></Trigger>
+            </Style.Triggers>
+        </Style>
         <Style TargetType="TextBox"><Setter Property="Padding" Value="10,7"/><Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/><Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/><Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/></Style>
         <Style TargetType="ComboBox"><Setter Property="Padding" Value="8,6"/><Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/><Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/></Style>
         <Style TargetType="ComboBoxItem">
@@ -14,6 +19,16 @@
             <Style.Triggers>
                 <Trigger Property="IsHighlighted" Value="True"><Setter Property="Background" Value="{DynamicResource AccentBrush}"/><Setter Property="Foreground" Value="White"/></Trigger>
             </Style.Triggers>
+        </Style>
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="{DynamicResource RaisedBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="Padding" Value="6,5"/>
+        </Style>
+        <Style TargetType="DataGridCell">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource GridLineBrush}"/>
         </Style>
     </Window.Resources>
     <Grid>
@@ -36,7 +51,9 @@
                     <TextBox x:Name="ComputerInput" Height="105" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" ToolTip="Enter computer names separated by commas, spaces, or new lines"/>
                     <TextBlock Text="Separate names with commas, spaces, or new lines. Duplicates are removed." TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,6,0,0"/>
                     <TextBlock Text="ACTION" Margin="0,20,0,7" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource SecondaryTextBrush}"/>
-                    <ComboBox x:Name="ActionInput" DisplayMemberPath="Name" SelectionChanged="ActionInput_OnSelectionChanged"/>
+                    <ComboBox x:Name="ActionInput" SelectionChanged="ActionInput_OnSelectionChanged">
+                        <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}" Foreground="{DynamicResource PrimaryTextBrush}"/></DataTemplate></ComboBox.ItemTemplate>
+                    </ComboBox>
                     <Border Margin="0,12,0,0" Padding="12" Background="{DynamicResource RaisedBackgroundBrush}" CornerRadius="6"><StackPanel><TextBlock x:Name="RiskText" FontWeight="SemiBold"/><TextBlock x:Name="ActionDescription" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,5,0,0"/></StackPanel></Border>
                     <Grid Margin="0,20,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>

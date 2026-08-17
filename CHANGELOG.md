@@ -9,7 +9,8 @@
 - Read-only remote Dell Command Update scans with visible update availability, update details, and per-computer output logs
 - Theme-aware ComboBox item colors for readable dark-mode dropdowns
 - Dedicated selected-result panel for Dell update details and raw command output
-- Dell report staging under the DCU-supported `ProgramData\Dell` location
+- Restored the proven `/scan` command path and added console-output availability detection without XML report staging
+- Complete native WPF system-brush overrides for readable dark-mode dropdowns, grid headers, selections, and disabled controls
 - Light and dark grey themes
 - External INI configuration with environment-variable expansion
 - JSON audit logging to a configurable directory
