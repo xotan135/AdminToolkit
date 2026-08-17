@@ -10,7 +10,7 @@ public static class ActionCatalog
         new("wsus", "Windows updates via WSUS", "Installs approved WSUS updates, optionally allowing a reboot.", ActionRisk.High, false),
         new("report", "Windows Update report now", "Requests a Windows Update reporting cycle.", ActionRisk.Medium, false),
         new("temp", "Delete temporary files", "Removes aged temporary files from approved locations.", ActionRisk.High, false),
-        new("dell-scan", "Dell Command Update scan", "Scans Dell computers for applicable driver and firmware updates.", ActionRisk.ReadOnly, false),
+        new("dell-scan", "Dell Command Update scan", "Scans Dell computers for applicable driver and firmware updates. Detailed output is written to the configured Dell scan log directory.", ActionRisk.ReadOnly, true),
         new("dell-apply", "Dell Command Update apply", "Installs applicable Dell driver and firmware updates.", ActionRisk.High, false),
         new("reboot", "Reboot", "Forcibly restarts approved computers after explicit confirmation.", ActionRisk.High, false),
         new("shutdown", "Shut down", "Forcibly powers off approved computers after explicit confirmation.", ActionRisk.High, false),

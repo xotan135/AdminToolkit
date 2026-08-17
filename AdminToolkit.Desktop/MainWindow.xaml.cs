@@ -9,7 +9,8 @@ namespace AdminToolkit.Desktop;
 public partial class MainWindow : Window
 {
     private readonly ObservableCollection<ComputerResult> _results = [];
-    private readonly ComputerStatusService _statusService = new(maximumConcurrency: 12);
+    private readonly ComputerStatusService _statusService;
+    private readonly DellUpdateScanService _dellScanService;
     private readonly ToolkitConfiguration _configuration;
     private readonly AuditLogService _auditLogService;
     private CancellationTokenSource? _jobCancellation;
@@ -19,6 +20,12 @@ public partial class MainWindow : Window
     {
         _configuration = ToolkitConfiguration.Load();
         _auditLogService = new AuditLogService(_configuration.LogDirectory);
+        _statusService = new ComputerStatusService(_configuration.MaximumConcurrency, _configuration.PingTimeoutMilliseconds);
+        _dellScanService = new DellUpdateScanService(
+            _configuration.MaximumConcurrency,
+            _configuration.PowerShellExecutable,
+            _configuration.DellCommandUpdate,
+            _configuration.DellScanDirectory);
         InitializeComponent();
         ThemeService.Apply(_configuration.DarkMode);
         DarkModeToggle.IsChecked = _configuration.DarkMode;
@@ -74,6 +81,7 @@ public partial class MainWindow : Window
         var progress = new Progress<ComputerResult>(result =>
         {
             _results.Add(result);
+            if (ResultsGrid.SelectedItem is null) ResultsGrid.SelectedItem = result;
             JobProgress.Value = _results.Count;
             SummaryText.Text = $"{_results.Count} of {computers.Count} complete";
         });
@@ -81,10 +89,14 @@ public partial class MainWindow : Window
         try
         {
             StatusText.Text = $"Running {action.Name} on {computers.Count} computer(s)…";
-            await _statusService.CheckAsync(computers, progress, _jobCancellation.Token);
-            var online = _results.Count(result => result.Status == ResultStatus.Online);
-            StatusText.Text = $"Complete — {online} online, {_results.Count - online} unavailable.";
-            SummaryText.Text = $"{_results.Count} results · {online} online";
+            if (action.Id == "dell-scan")
+                await _dellScanService.ScanAsync(computers, progress, _jobCancellation.Token);
+            else
+                await _statusService.CheckAsync(computers, progress, _jobCancellation.Token);
+
+            var successful = _results.Count(result => result.Status is ResultStatus.Success or ResultStatus.Online);
+            StatusText.Text = $"Complete — {successful} successful, {_results.Count - successful} unavailable or failed.";
+            SummaryText.Text = $"{_results.Count} results · {successful} successful";
             await _auditLogService.WriteAsync(action, _results, CancellationToken.None);
         }
         catch (OperationCanceledException)
@@ -111,6 +123,16 @@ public partial class MainWindow : Window
         CancelButton.IsEnabled = false;
         StatusText.Text = "Cancelling…";
         _jobCancellation?.Cancel();
+    }
+
+    private void ResultsGrid_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ResultsGrid.SelectedItem is ComputerResult result)
+        {
+            DetailsOutput.Text = string.IsNullOrWhiteSpace(result.Details)
+                ? "No additional command output is available for this result."
+                : result.Details;
+        }
     }
 
     private void SetRunningState(bool isRunning)

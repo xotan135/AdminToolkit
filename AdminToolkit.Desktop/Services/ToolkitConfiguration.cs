@@ -10,6 +10,11 @@ public sealed class ToolkitConfiguration
 
     public string FilePath { get; }
     public string LogDirectory => Expand(Get("Logs", "AuditDirectory", @"%LOCALAPPDATA%\AdminToolkit\Logs"));
+    public string DellScanDirectory => Expand(Get("Logs", "DellScanDirectory", @"%LOCALAPPDATA%\AdminToolkit\Logs\Dell"));
+    public string PowerShellExecutable => Expand(Get("Commands", "PowerShellExecutable", "powershell.exe"));
+    public string DellCommandUpdate => Get("Commands", "DellCommandUpdate", @"%ProgramFiles%\Dell\CommandUpdate\dcu-cli.exe");
+    public int MaximumConcurrency => GetPositiveInteger("Safety", "MaximumConcurrency", 12);
+    public int PingTimeoutMilliseconds => GetPositiveInteger("Safety", "PingTimeoutMilliseconds", 2_000);
     public bool DarkMode
     {
         get => bool.TryParse(Get("Appearance", "DarkMode", "false"), out var enabled) && enabled;
@@ -74,4 +79,7 @@ public sealed class ToolkitConfiguration
     }
 
     private static string Expand(string value) => Environment.ExpandEnvironmentVariables(value);
+
+    private int GetPositiveInteger(string section, string key, int fallback) =>
+        int.TryParse(Get(section, key), out var value) && value > 0 ? value : fallback;
 }

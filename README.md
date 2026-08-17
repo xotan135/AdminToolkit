@@ -6,13 +6,13 @@ Admin Toolkit is a Windows desktop application for running approved administrati
 
 - Light and dark grey themes with a persistent toggle
 - Multi-computer input with duplicate removal
-- Parallel online-status checks with a concurrency limit
+- Parallel online-status and Dell Command Update scan jobs with a concurrency limit
 - Live progress, per-computer results, and cancellation
 - Thirteen-action migration catalog with risk labels
 - JSON audit logs
 - Private INI-based configuration for internal paths and computer names
 
-Only **Check online status** is enabled in the current release. Higher-impact actions remain disabled until their validation, confirmation, logging, and protected-computer rules are implemented.
+**Check online status** and the read-only **Dell Command Update scan** are enabled. Higher-impact actions remain disabled until their validation, confirmation, logging, and protected-computer rules are implemented.
 
 ## Requirements
 
